@@ -1,0 +1,14 @@
+{
+    "type": "service_account",
+    "project_id": "telegrampasportbot",
+    "private_key_id": "0073f4fea090db0c625733b785d30e4c930f4a59",
+    "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQDAU8F9BgPRjqc7\n8VbbdwxMok/P3YBKyLv9Kb8UNJzTjEKylV967ezCC350SHLcoIbhLy7uHeFTiumC\nJzFnE4QAcKYZbMVWP09t6j0WcViAfqZzadfVGZYWHmw/eLkurvtJx5IWQO5TBoAp\ndjYpyX0DoxWoqsfePaAsdQ36PwPjvIXFjoKm+97ezL1IoGG1DznxSBuxPcAP8eiD\nNqnw8QjLZ3XaHY/+iz3ZUIIsPiwnLIYndIIVcSRAcpK6AVJvwxXEiV2azZDTlrwJ\nKWPxA5koyENzx6vFbXMRxSUDFkTDVtmn+9JI9Fa/5GXsd2e9sB1vwNrL93ejsTZv\ngXUyMKxHAgMBAAECggEAFOaFNmL680D/Z4I4oCz1xzY0WjCGCpp5428v9rApAsxR\nSzr0X1WPzx6UpWpiIRvIzJvmC7ZvkDaeXaiIs9zpEWssgcLSRycmKJm1/cRfi8c3\nq38rF1tqdgjkVpl19l7JrCDl/UkdHSSttNPF2xCsZ0LHzcaRZdNonqwx0qoacBsS\nWD34Ry0XUZ3RXiWe9tRYSl/o3C558leOFhspUBQLa5f4WQuex2Nv2kjhzNckszgA\nZ6KcVUcK0s/rxMXovBEakRy1Foedy5eWqaTdziubjcfUMrrvPLtd9E4P6a7dDvcg\nHz1Bp2zDRGoOFlmS4pkWHuy2sD4eeNPkPZROL9yrYQKBgQDq6hfnHpwa+TaMoOIB\nR2q6YdAwmr42M2KJ7hh5OZv1Ky8YwEaKCiWd5WBHoi60kqtUrKy6j3JuQZNQZ76R\n+bBqR0IuaisxFt6wUWgjnVRoXCPbjAc2HeaS5eh6VvqNxzEm9GxACJ9yXHjviyeJ\nymp2J/pfxNZVkEixMe94r1cCbwKBgQDRlxWuZgiLgntEkezr4OgtpuW4wvxoHaNp\nTmfBK5n3GTuZz7j6xoYAp6MEDoUGDYrEpr2SeQFeAe/F2tz5LuhgNn4Z3bhJ6T2u\nEqQDChcU2y+oTG3Jj9p1f5z24oBDGsQITycnr5orTSiDzxmeGxmhh14upXlQ/GPz\n+FIVqqV/qQKBgCP4Uk6mZjrPHCYuYEzX1aTSY2F94FBGT/lUxtSRGKtSwHRmxKZQ\nZXAm9jYhxEsMBkYB5rTuUBRH4Dm4mPqbJAMyBBU9Vn2+xbxzyqFhbtJIAYmViGkl\n7O9jWtSYyua4sHMJjCXF7DxDopTzVsuHfgO3nWParQMPA8J2JffxyT3rAoGAHUJH\nP5J07OzpQnhQp9k88GqVNUbbL7m7f073wwrQMqOuI1nRTAj82giNBFr2jRLE5ZEV\nc+Y6n6ILlAZqxMqcnBnfXsMKIB9UggGOLfJxqHK043zP8syHRdHr2rdiCnwpE7Ph\nFnQ4RIU/+66kt+K2oEsihcaJ+hlR5tQquWWaNwkCgYAMQgx0MrqXxk75rgzZrfhI\nRXOBexEul+TKOUuCoEo1gQhiV7HW6aaVSZeRrMCOV787l1FIK+p/znuGSEgV4O5v\nSLYOouvIEhbUrypvZ15bvhkN6QUJOvzm4Ug0yGcbIz9Gt4JtUkgGaBaLFMu3tZ24\nMr5upNm3CEWJR/PnXdMWnw==\n-----END PRIVATE KEY-----\n",
+    "client_email": "firebase-adminsdk-7x8vk@telegrampasportbot.iam.gserviceaccount.com",
+    "client_id": "104670815525630013630",
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-7x8vk%40telegrampasportbot.iam.gserviceaccount.com",
+    "universe_domain": "googleapis.com"
+  }
+  
