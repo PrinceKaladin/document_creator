@@ -7,11 +7,6 @@ WORKDIR /app
 # Копируем файлы проекта
 COPY main.py ./
 COPY requirements.txt ./
-COPY firebase_key.json ./  # Копируем ключ Firebase
-
-
-
-
 
 # Устанавливаем зависимости
 RUN pip install --no-cache-dir -r requirements.txt
