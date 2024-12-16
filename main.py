@@ -86,7 +86,7 @@ documents = {
     "italy residence permit 🇮🇹", "portugal residence permit 🇵🇹"
 ],
 "Utility Bills 🧾": [
-    "bbva statement 🇪🇸", "tmobile bill pdf 🇺🇸", "california bill 🇺🇸", "texas bill 🇺🇸",
+    "bbva statement 🇺🇸", "tmobile bill pdf 🇺🇸", "california bill 🇺🇸", "texas bill 🇺🇸",
     "scana bill 🇺🇸", "china power bill 🇨🇳", "belgium bill 🇧🇪", "italy bill 🇮🇹",
     "uk bill scottish power 🇬🇧", "uk bill ee 🇬🇧", "canada bill rogers 🇨🇦"
 ],
@@ -150,7 +150,7 @@ documents1 = {
     "italy residence permit 🇮🇹", "portugal residence permit 🇵🇹"
 ],
 "Коммунальные услуги 🧾": [
-    "bbva statement 🇪🇸", "tmobile bill pdf 🇺🇸", "california bill 🇺🇸", "texas bill 🇺🇸",
+    "bbva statement 🇺🇸", "tmobile bill pdf 🇺🇸", "california bill 🇺🇸", "texas bill 🇺🇸",
     "scana bill 🇺🇸", "china power bill 🇨🇳", "belgium bill 🇧🇪", "italy bill 🇮🇹",
     "uk bill scottish power 🇬🇧", "uk bill ee 🇬🇧", "canada bill rogers 🇨🇦"
 ],
@@ -161,13 +161,9 @@ documents1 = {
 ]
 }
 
-
-
-    
-
 bot = telebot.TeleBot(TOKEN)
 def glavnoe_menu(chatid):
-
+        # Удаляем данные о текущем шаге и процессе, если они есть
     if chatid in current_step:
         del current_step[chatid]
     if chatid in user_data:
@@ -276,6 +272,7 @@ def update_user_balance(chatid, amount):
         print(f"Баланс пользователя {chatid} обновлен. Новый баланс: {new_balance}")
     else:
         print(f"Пользователь с chatid {chatid} не найден.")
+
 def save_to_firebase(path, value):
     # Генерация ключа как текущее время (метка времени в секундах)
     key = str(int(time.time()))  # метка времени в секундах
@@ -322,7 +319,16 @@ def generate(user, chatid):
 
                     url = str(pay.json()["image_url"]).replace("old.verif.tools","api.verifblog.com")
 
-                    bot.send_photo(chatid,url)
+                    
+                    response = requests.get(url)
+                    if response.status_code == 200:
+                        with open(str(chatid)+".jpg", "wb") as file:
+                            file.write(response.content)
+
+                        # Отправляем фотографию как локальный файл
+                        with open(str(chatid)+".jpg", "rb") as photo:
+                            bot.send_document(chatid, photo)
+
                     save_to_firebase(f"users/{chatid}/orders",url)
                 else:
  
@@ -349,10 +355,65 @@ def generate(user, chatid):
 
                 url = str(pay.json()["image_url"]).replace("old.verif.tools","api.verifblog.com")
 
-                bot.send_photo(chatid,url)
+                response = requests.get(url)
+                if response.status_code == 200:
+                    with open(str(chatid)+".jpg", "wb") as file:
+                        file.write(response.content)
+
+                    # Отправляем фотографию как локальный файл
+                    with open(str(chatid)+".jpg", "rb") as photo:
+                        bot.send_document(chatid, photo)
+                save_to_firebase(f"users/{chatid}/orders",url)
             else:
                 print(response.text)
                 bot.send_message(chatid, "У вас возникла ошибка при вводе данных. Пожалуйста, повторите попытку")
+    glavnoe_menu(chatid)
+def generatebonk(user, chatid):
+
+    data = {
+            "data": json.dumps(user["main_shablon"]),
+            "generator": user["slug"]
+        }
+    
+    files = {key: (None, value) for key, value in data.items()}
+
+    response = requests.post(generate_url, files=files)
+    if response.status_code == 201:
+        data = response.json()
+        print("pay", data["task_id"])
+        bot.send_message(chatid, "Ожидайте, фотография генерируется...",reply_markup=types.ReplyKeyboardRemove())
+        time.sleep(5)
+
+        pay = requests.get("https://api.verifblog.com/api/integration/generation-status/"+data["task_id"],params = {"_": time.time()}).json()
+        while pay["task_status"]!="end" and pay["task_status"]!="user_code_error" :
+            time.sleep(3)
+            print(pay)
+            pay = requests.get("https://api.verifblog.com/api/integration/generation-status/"+data["task_id"],params = {"_": time.time()}).json()
+        if pay["task_status"]=="0":
+            bot.send_message(chatid, "У вас возникла ошибка при вводе данных. Пожалуйста, повторите попытку")
+            print(pay)
+            return
+
+        pay = requests.post(pay_url,data={"task_id":data["task_id"]},auth = auth)
+        print(pay.text)
+
+        url = str(pay.json()["image_url"]).replace("old.verif.tools","api.verifblog.com")
+
+        response = requests.get(url)
+        if response.status_code == 200:
+            with open("result_image.jpg", "wb") as file:
+                file.write(response.content)
+    
+            # Отправляем фотографию как локальный файл
+            with open("result_image.jpg", "rb") as photo:
+                bot.send_document(chatid, photo)
+        else:
+            print("Ошибка загрузки изображения")
+        save_to_firebase(f"users/{chatid}/orders",url)
+    else:
+        print (response.json())
+        bot.send_message(chatid, "У вас возникла ошибка при вводе данных. Пожалуйста, повторите попытку")
+
     glavnoe_menu(chatid)
 def get_all_user_ids():
     # Ссылка на узел /users
@@ -538,7 +599,6 @@ def start_handler(message):
     # Создаем клавиатуру для выбора языка
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
     markup.row("🇬🇧 English", "🇷🇺 Русский")  # Добавляем кнопки языков
-
     bot.send_message(chat_id, "Please select your language / Пожалуйста, выберите язык:", reply_markup=markup)
     user_language[chat_id] = None  # Ожидание выбора языка
     chatid = message.chat.id
@@ -546,7 +606,6 @@ def start_handler(message):
     name = message.from_user.full_name
     add_user(chatid,username,name,message)
 
-    
 
 @bot.message_handler(func=lambda message: message.text.lower() == "пригласить друзей📩" or message.text.lower() == "invite friends📩")
 def invite_friends(message):
@@ -710,7 +769,7 @@ def handle_create_document(message):
     else:
         bot.send_message(message.chat.id, "Select document type:", reply_markup=markup)
         
-
+user_cat={}
 # Обработчик выбора типа документа
 @bot.message_handler(func=lambda message: message.text in documents.keys() or message.text in documents1.keys())
 def handle_document_selection(message):
@@ -727,7 +786,7 @@ def handle_document_selection(message):
         markup.add(types.KeyboardButton("back"))
         for doc in documents[category]:
             markup.add(types.KeyboardButton(doc))
-    
+    user_cat[message.chat.id]=category
 
     
     # Отправляем сообщение с выбором конкретного документа
@@ -1083,7 +1142,7 @@ def start_rassilka(message):
     bot.send_message(message.chat.id, "Рассылка завершена.")
 
 
-@bot.message_handler(func=lambda message: message.text in ["отменить","cancel","назад","back"])
+@bot.message_handler(func=lambda message: message.text in ["отменить","cancel","назад","back","Главное меню","Main menu"])
 def handle_cancel(message):
     chatid = message.chat.id
 
@@ -1191,20 +1250,42 @@ def handle_answer(message):
 
     ask_next_question(chatid)
 def finalize_blank(chatid):
-    # Указываем, что ожидаем фотоr
-    current_step[chatid] = "waiting_for_first_photo"
-    if user_language[chatid] == "ru":
-        bot.send_message(chatid, "Пожалуйста, отправьте фото для завершения.")
+    if not user_cat[chatid] in ["Коммунальные услуги 🧾","Выписки из банка 🏦","Bank Statements 🏦","Utility Bills 🧾"]: 
+        current_step[chatid] = "waiting_for_first_photo"
+        if user_language[chatid] == "ru":
+            bot.send_message(chatid, "Пожалуйста, отправьте фото для завершения.")
+        else:
+            bot.send_message(chatid, "Please submit a photo to complete.")
     else:
-        bot.send_message(chatid, "Please submit a photo to complete.")
         
+        markup = types.ReplyKeyboardMarkup(row_width=5)
+        create_document_button = types.KeyboardButton("Photo")
+        create_document_button1 = types.KeyboardButton("Scan")
+        create_document_button2 = types.KeyboardButton("Print")
+        markup.add(create_document_button,create_document_button1,create_document_button2)
+        current_step[chatid] = "waiting_for_psp"
+        if user_language[chatid]=="rus":
+            bot.send_message(chatid, " Теперь выберите тип файла для сохранения",reply_markup=markup)
+        else:
+            bot.send_message(chatid, " Now select the file type to save",reply_markup=markup)
+
 @bot.message_handler(func=lambda message: message.chat.id in current_step and current_step[message.chat.id] == "waiting_for_payment")
 def handle_payment_response(message):
     chatid = message.chat.id
     if message.text.lower() == "да" or message.text.lower() == "yes":
         update_user_balance(chatid,-float(user_data[chatid]["price"]))
-        generate(user_data[chatid],chatid)
-        pass
+        if not user_cat[chatid] in ["Коммунальные услуги 🧾","Выписки из банка 🏦","Bank Statements 🏦","Utility Bills 🧾"]:
+            try:
+                generate(user_data[chatid],chatid)
+            except:
+                bot.send_message(chatid,"ошибка со стороны сервера")
+        else:
+            try:
+                generatebonk(user_data[chatid],chatid)
+            except:
+                bot.send_message(chatid,"ошибка со стороны сервера")
+
+                
     elif message.text.lower() == "нет" or message.text.lower() == "no":
         glavnoe_menu(chatid)
 
@@ -1230,11 +1311,32 @@ def handle_payment_response(message):
         con2 = types.KeyboardButton(str(i+2))
         con3 = types.KeyboardButton(str(i+3))
         markup.row(con,con1,con2,con3)
-    if user_language[chatid]=="ru":
-        bot.send_message(chatid, "Напишите номер фона (число от 1 до 16)",reply_markup=markup)
+    if not user_cat[chatid] in ["Коммунальные услуги 🧾","Выписки из банка 🏦","Bank Statements 🏦","Utility Bills 🧾"]: 
+        if user_language[chatid]=="ru":
+            bot.send_message(chatid, "Напишите номер фона (число от 1 до 16)",reply_markup=markup)
+        else:
+            bot.send_message(chatid, "Write the background number (a number from 1 to 16)",reply_markup=markup)
+        current_step[chatid] = "waittingforbg"
     else:
-        bot.send_message(chatid, "Write the background number (a number from 1 to 16)",reply_markup=markup)
-    current_step[chatid] = "waittingforbg"
+        markup = types.ReplyKeyboardMarkup(row_width=5)
+        current_step[chatid] = "waiting_for_payment"
+        if user_language[chatid]=="ru":
+            create_document_button = types.KeyboardButton("Да")
+            create_document_button1 = types.KeyboardButton("Нет")
+            markup.add(create_document_button,create_document_button1)
+            price = float(user_data.get(chatid, {}).get("price", 0))
+            current_step[chatid] = "waiting_for_payment"
+            bot.send_message(chatid, f"Пожалуйста, оплатите {price} $. Подтвердите оплату, отправив 'Да', или отмените, отправив 'Нет'.",reply_markup=markup)
+
+        else:
+            create_document_button = types.KeyboardButton("Yes")
+            create_document_button1 = types.KeyboardButton("No")
+            markup.add(create_document_button,create_document_button1)
+            current_step[chatid] = "waiting_for_payment"
+            price = float(user_data.get(chatid, {}).get("price", 0))
+            bot.send_message(chatid, f"Please pay {price} $. Confirm payment by sending 'Yes' or cancel by sending 'No'.",reply_markup=markup)
+
+   
 @bot.message_handler(func=lambda message: message.chat.id in current_step and current_step[message.chat.id] == "waittingforbg")
 def handle_payment_response(message):
     chatid = message.chat.id
@@ -1257,31 +1359,48 @@ def handle_payment_response(message):
 
    
  
-@bot.message_handler(content_types=['photo'])
+@bot.message_handler(func=lambda message: message.chat.id in current_step and current_step[message.chat.id] == "waiting_for_first_photo")
 def handle_photo(message):
     chatid = message.chat.id
 
     if chatid in current_step and current_step[chatid] == "waiting_for_first_photo":
-        # Сохраняем первую фотографию
-        photo_file_id = message.photo[-1].file_id
-        file_info = bot.get_file(photo_file_id)
-        downloaded_file = bot.download_file(file_info.file_path)
+        if message.photo:
+            # Сохраняем первую фотографию
+            photo_file_id = message.photo[-1].file_id
+            file_info = bot.get_file(photo_file_id)
+            downloaded_file = bot.download_file(file_info.file_path)
 
-        file_name = str(chatid) + "_1.jpg"
-        file_path = os.path.join('', file_name)
-        markup = types.ReplyKeyboardMarkup(row_width=5)
-        if user_language[chatid]=="ru":
-            create_document_button = types.KeyboardButton("пропустить")
+            file_name = str(chatid) + "_1.jpg"
+            file_path = os.path.join('', file_name)
+            markup = types.ReplyKeyboardMarkup(row_width=5)
+            if user_language[chatid]=="ru":
+                create_document_button = types.KeyboardButton("пропустить")
+            else:
+                create_document_button = types.KeyboardButton("skip")
+            markup.add(create_document_button)
+            with open(file_path, 'wb') as new_file:
+                new_file.write(downloaded_file)
+            if user_language[chatid]=="ru":
+                bot.send_message(chatid, "Первая фотография успешно сохранена! Теперь отправьте фотографию подписи или пропустите этот шаг.",reply_markup=markup)
+            else:
+                bot.send_message(chatid, "The first photo was successfully saved! Now send a photo of the signature or skip this step.",reply_markup=markup)
         else:
-            create_document_button = types.KeyboardButton("skip")
-        markup.add(create_document_button)
-        with open(file_path, 'wb') as new_file:
-            new_file.write(downloaded_file)
-        if user_language[chatid]=="ru":
-            bot.send_message(chatid, "Первая фотография успешно сохранена! Теперь отправьте фотографию подписи или пропустите этот шаг.",reply_markup=markup)
-        else:
-            bot.send_message(chatid, "The first photo was successfully saved! Now send a photo of the signature or skip this step.",reply_markup=markup)
-
+            response = requests.get("https://api.verifblog.com/media/generators/previews/photo_for_passport_1.jpg",stream=True)
+            file_name = str(chatid) + "_1.jpg"
+            file_path = os.path.join('', file_name)
+            markup = types.ReplyKeyboardMarkup(row_width=5)
+            if user_language[chatid]=="ru":
+                create_document_button = types.KeyboardButton("пропустить")
+            else:
+                create_document_button = types.KeyboardButton("skip")
+            markup.add(create_document_button)
+            with open(file_name, "wb") as file:
+                for chunk in response.iter_content(1024):
+                    file.write(chunk)
+            if user_language[chatid]=="ru":
+                bot.send_message(chatid, "Первое Фото пропущено. Теперь отправьте фотографию подписи или пропустите этот шаг.",reply_markup=markup)
+            else:
+                bot.send_message(chatid, "The first photo was successfully Skipped! Now send a photo of the signature or skip this step.",reply_markup=markup)
         current_step[chatid] = "waiting_for_second_photo"
 
     elif chatid in current_step and current_step[chatid] == "waiting_for_second_photo":
@@ -1336,8 +1455,8 @@ def handle_photo(message):
 
 while True:
     try:
-
         bot.polling()
+        
 
     except Exception as e:
         print(f"Ошибка: {e}. Перезапуск через 5 секунд...")
