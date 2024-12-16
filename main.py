@@ -12,6 +12,7 @@ from datetime import datetime
 from coinbase_commerce.client import Client
 from coinbase_commerce.webhook import Webhook
 from googletrans import Translator
+idsph=["AgACAgIAAxkBAAIeo2dgikGK1ZGWahkgTObXoCjxUiYnAALL6TEbQNMBS5PlbyWb2oRjAQADAgADeAADNgQ","AgACAgIAAxkBAAIeqmdginzGTluq6mUE5INwR5G_4nGgAALM6TEbQNMBS9Ay6rAD1w4tAQADAgADeQADNgQ","AgACAgIAAxkBAAIerGdgin_WZRD36mAS5v6UqnJDG6bpAALN6TEbQNMBS3q1Snohah4pAQADAgADeAADNgQ"]
 
 TOKEN = "7970079011:AAGykMNUVoPTlUFh3cbAwMn-3gz6EzPvcmY"
 user_data = {}
@@ -1456,8 +1457,13 @@ def handle_payment_response(message):
         markup.row(con,con1,con2,con3)
     if not user_cat[chatid] in ["Коммунальные услуги 🧾","Выписки из банка 🏦","Bank Statements 🏦","Utility Bills 🧾"]: 
         if user_language[chatid]=="ru":
+            media_group = [telebot.types.InputMediaPhoto(photo_id) for photo_id in idsph]
+            bot.send_media_group(message.chat.id, media_group)
             bot.send_message(chatid, "Напишите номер фона (число от 1 до 16)",reply_markup=markup)
+            
         else:
+            media_group = [telebot.types.InputMediaPhoto(photo_id) for photo_id in idsph]
+            bot.send_media_group(message.chat.id, media_group)
             bot.send_message(chatid, "Write the background number (a number from 1 to 16)",reply_markup=markup)
         current_step[chatid] = "waittingforbg"
     else:
