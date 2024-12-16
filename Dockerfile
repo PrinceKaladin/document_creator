@@ -9,8 +9,7 @@ COPY main.py ./
 COPY requirements.txt ./
 COPY firebase_key.json ./  # Копируем ключ Firebase
 
-# Создаем нужные папки
-RUN mkdir -p /app/Firebase
+
 
 
 
