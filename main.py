@@ -334,7 +334,7 @@ def generate(user, chatid):
 
                     url = str(pay.json()["image_url"]).replace("old.verif.tools","api.verifblog.com")
 
-                    name = url.split("/")[-1]
+                    name = str(chatid) + url.split("/")[-1]
                     response = requests.get(url)
                     if response.status_code == 200:
                         with open(name, "wb") as file:
@@ -371,7 +371,7 @@ def generate(user, chatid):
                 url = str(pay.json()["image_url"]).replace("old.verif.tools","api.verifblog.com")
 
                 response = requests.get(url)
-                name = url.split("/")[-1]
+                name = str(chatid) + url.split("/")[-1]
                 if response.status_code == 200:
                     with open(name, "wb") as file:
                         file.write(response.content)
@@ -416,7 +416,7 @@ def generatebonk(user, chatid):
         url = str(pay.json()["image_url"]).replace("old.verif.tools","api.verifblog.com")
 
         response = requests.get(url)
-        name = url.split("/")[-1]
+        name = str(chatid) + url.split("/")[-1]
         if response.status_code == 200:
             with open(name, "wb") as file:
                 file.write(response.content)
