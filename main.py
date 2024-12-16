@@ -943,6 +943,117 @@ def x(message):
     markup.add(create_document_button1)
 
     bot.send_message(message.chat.id, "Выберите нужное действие", reply_markup=markup)
+@bot.message_handler(func=lambda message: message.text == "Рассылка" and str(message.chat.id) in get_all_admins_ids())
+def x(message):
+
+    markup = types.ReplyKeyboardMarkup()
+    markup.add(types.KeyboardButton("назад"))
+    markup.add(types.KeyboardButton("Текст рассылки"))
+    markup.add(types.KeyboardButton("Медиа рассылки"))
+    markup.add(types.KeyboardButton("Удалить все медиа"))
+    markup.add(types.KeyboardButton("Редактировать FAQ RU"))
+    markup.add(types.KeyboardButton("Редактировать правила RU"))
+    markup.add(types.KeyboardButton("Редактировать канал RU"))
+    markup.add(types.KeyboardButton("Редактировать поддержку RU"))
+    markup.add(types.KeyboardButton("Редактировать FAQ EN"))
+    markup.add(types.KeyboardButton("Редактировать правила EN"))
+    markup.add(types.KeyboardButton("Редактировать канал EN"))
+    markup.add(types.KeyboardButton("Редактировать поддержку EN"))    
+    bot.send_message(message.chat.id,"Выберите действие", reply_markup=markup) 
+@bot.message_handler(func=lambda message: message.text == "Редактировать FAQ RU" and str(message.chat.id) in get_all_admins_ids())
+def x(message):
+    admin_step[message.chat.id]="readyforfaqru"
+    bot.send_message(message.chat.id,"отправьте сообщение для FAQ")
+@bot.message_handler(func=lambda message:admin_step.get(message.chat.id) == "readyforfaqru")
+def x(message):
+    ref = db.reference("soobshenya/faq_rus")
+    ref.set(message.text)
+    bot.send_message(message.chat.id, "Текст для FAQ сохранён.")
+    admin_step.get(message.chat.id) = "complete"
+@bot.message_handler(func=lambda message: message.text == "Редактировать FAQ EN" and str(message.chat.id) in get_all_admins_ids())
+def x(message):
+    admin_step[message.chat.id]="readyforfaqen"
+    bot.send_message(message.chat.id,"отправьте сообщение для FAQ")
+@bot.message_handler(func=lambda message:admin_step.get(message.chat.id) == "readyforfaqen")
+def x(message):
+    ref = db.reference("soobshenya/faq_eng")
+    ref.set(message.text)
+    bot.send_message(message.chat.id, "Текст для FAQ сохранён.")
+    admin_step.get(message.chat.id) = "complete"
+
+
+
+@bot.message_handler(func=lambda message: message.text == "Редактировать канал RU" and str(message.chat.id) in get_all_admins_ids())
+def x(message):
+    admin_step[message.chat.id]="readyforchanru"
+    bot.send_message(message.chat.id,"отправьте сообщение для канала")
+@bot.message_handler(func=lambda message:admin_step.get(message.chat.id) == "readyforchanru")
+def x(message):
+    ref = db.reference("soobshenya/channel_rus")
+    ref.set(message.text)
+    bot.send_message(message.chat.id, "Текст для канала сохранён.")
+    admin_step.get(message.chat.id) = "complete"
+@bot.message_handler(func=lambda message: message.text == "Редактировать канал EN" and str(message.chat.id) in get_all_admins_ids())
+def x(message):
+    admin_step[message.chat.id]="readyforchanen"
+    bot.send_message(message.chat.id,"отправьте сообщение для канала")
+@bot.message_handler(func=lambda message:admin_step.get(message.chat.id) == "readyforchanen")
+def x(message):
+    ref = db.reference("soobshenya/channel_eng")
+    ref.set(message.text)
+    bot.send_message(message.chat.id, "Текст для канала сохранён.")
+    admin_step.get(message.chat.id) = "complete"
+
+
+@bot.message_handler(func=lambda message: message.text == "Редактировать правила RU" and str(message.chat.id) in get_all_admins_ids())
+def x(message):
+    admin_step[message.chat.id]="readyforpravru"
+    bot.send_message(message.chat.id,"отправьте сообщение для правил")
+@bot.message_handler(func=lambda message:admin_step.get(message.chat.id) == "readyforpravru")
+def x(message):
+    ref = db.reference("soobshenya/rules_rus")
+    ref.set(message.text)
+    bot.send_message(message.chat.id, "Текст для правил сохранён.")
+    admin_step.get(message.chat.id) = "complete"
+@bot.message_handler(func=lambda message: message.text == "Редактировать правила EN" and str(message.chat.id) in get_all_admins_ids())
+def x(message):
+    admin_step[message.chat.id]="readyforchanen"
+    bot.send_message(message.chat.id,"отправьте сообщение для правил")
+@bot.message_handler(func=lambda message:admin_step.get(message.chat.id) == "readyforchanen")
+def x(message):
+    ref = db.reference("soobshenya/rules_eng")
+    ref.set(message.text)
+    bot.send_message(message.chat.id, "Текст для правил сохранён.")
+    admin_step.get(message.chat.id) = "complete"
+
+
+
+
+
+@bot.message_handler(func=lambda message: message.text == "Редактировать поддержку RU" and str(message.chat.id) in get_all_admins_ids())
+def x(message):
+    admin_step[message.chat.id]="readyforpodru"
+    bot.send_message(message.chat.id,"отправьте сообщение для поддержки")
+@bot.message_handler(func=lambda message:admin_step.get(message.chat.id) == "readyforpodru")
+def x(message):
+    ref = db.reference("soobshenya/support_rus")
+    ref.set(message.text)
+    bot.send_message(message.chat.id, "Текст для поддержки сохранён.")
+    admin_step.get(message.chat.id) = "complete"
+@bot.message_handler(func=lambda message: message.text == "Редактировать поддержку EN" and str(message.chat.id) in get_all_admins_ids())
+def x(message):
+    admin_step[message.chat.id]="readyforpoden"
+    bot.send_message(message.chat.id,"отправьте сообщение для поддержки")
+@bot.message_handler(func=lambda message:admin_step.get(message.chat.id) == "readyforpoden")
+def x(message):
+    ref = db.reference("soobshenya/support_eng")
+    ref.set(message.text)
+    bot.send_message(message.chat.id, "Текст для поддержки сохранён.")
+    admin_step.get(message.chat.id) = "complete"
+
+
+
+
 @bot.message_handler(func=lambda message: message.text == "Все пользователи" and str(message.chat.id) in get_all_admins_ids())
 def x(message):
 
