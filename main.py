@@ -1464,6 +1464,96 @@ def handle_photo(message):
         else:
             bot.send_message(chatid, "I'm not expecting a photo from you. Try again.")
 
+@bot.message_handler(content_types=['photo'])
+def handle_photo(message):
+    chatid = message.chat.id
+
+    if chatid in current_step and current_step[chatid] == "waiting_for_first_photo":
+        if message.photo:
+            # Сохраняем первую фотографию
+            photo_file_id = message.photo[-1].file_id
+            file_info = bot.get_file(photo_file_id)
+            downloaded_file = bot.download_file(file_info.file_path)
+
+            file_name = str(chatid) + "_1.jpg"
+            file_path = os.path.join('', file_name)
+            markup = types.ReplyKeyboardMarkup(row_width=5)
+            if user_language[chatid]=="ru":
+                create_document_button = types.KeyboardButton("пропустить")
+            else:
+                create_document_button = types.KeyboardButton("skip")
+            markup.add(create_document_button)
+            with open(file_path, 'wb') as new_file:
+                new_file.write(downloaded_file)
+            if user_language[chatid]=="ru":
+                bot.send_message(chatid, "Первая фотография успешно сохранена! Теперь отправьте фотографию подписи или пропустите этот шаг.",reply_markup=markup)
+            else:
+                bot.send_message(chatid, "The first photo was successfully saved! Now send a photo of the signature or skip this step.",reply_markup=markup)
+        else:
+            response = requests.get("https://api.verifblog.com/media/generators/previews/photo_for_passport_1.jpg",stream=True)
+            file_name = str(chatid) + "_1.jpg"
+            file_path = os.path.join('', file_name)
+            markup = types.ReplyKeyboardMarkup(row_width=5)
+            if user_language[chatid]=="ru":
+                create_document_button = types.KeyboardButton("пропустить")
+            else:
+                create_document_button = types.KeyboardButton("skip")
+            markup.add(create_document_button)
+            with open(file_name, "wb") as file:
+                for chunk in response.iter_content(1024):
+                    file.write(chunk)
+            if user_language[chatid]=="ru":
+                bot.send_message(chatid, "Первое Фото пропущено. Теперь отправьте фотографию подписи или пропустите этот шаг.",reply_markup=markup)
+            else:
+                bot.send_message(chatid, "The first photo was successfully Skipped! Now send a photo of the signature or skip this step.",reply_markup=markup)
+        current_step[chatid] = "waiting_for_second_photo"
+
+    elif chatid in current_step and current_step[chatid] == "waiting_for_second_photo":
+        if message.photo:
+            # Сохраняем вторую фотографию
+            photo_file_id = message.photo[-1].file_id
+            file_info = bot.get_file(photo_file_id)
+            downloaded_file = bot.download_file(file_info.file_path)
+
+            file_name = str(chatid) + "_2.jpg"
+            file_path = os.path.join('', file_name)
+
+            with open(file_path, 'wb') as new_file:
+                new_file.write(downloaded_file)
+                markup = types.ReplyKeyboardMarkup(row_width=5)
+                create_document_button = types.KeyboardButton("Photo")
+                create_document_button1 = types.KeyboardButton("Scan")
+                create_document_button2 = types.KeyboardButton("Print")
+                markup.add(create_document_button,create_document_button1,create_document_button2)
+            if user_language[chatid]=="ru":
+                bot.send_message(chatid, "Вторая фотография успешно сохранена! Спасибо. Теперь выберите тип файла для сохранения",reply_markup=markup)
+            else:
+                bot.send_message(chatid, "The second photo was successfully saved! Thank you. Now select the file type to save",reply_markup=markup)
+                
+            current_step[chatid] = "waiting_for_psp"
+        else:
+            new_file.write(downloaded_file)
+            markup = types.ReplyKeyboardMarkup(row_width=5)
+            create_document_button = types.KeyboardButton("Photo")
+            create_document_button1 = types.KeyboardButton("Scan")
+            create_document_button2 = types.KeyboardButton("Print")
+            markup.add(create_document_button,create_document_button1,create_document_button2)
+            if user_language[chatid]=="ru":
+                bot.send_message(chatid, "Вы решили пропустить отправку второй фотографии. Спасибо. Теперь выберите тип файла для сохранения",reply_markup=markup)
+            else:
+                bot.send_message(chatid, "You decide to skip sending the second photo. Thank you. Now select the file type to save",reply_markup=markup)
+
+            current_step[chatid] = "waiting_for_psp"
+        
+
+        
+
+    else:
+        if user_language[chatid]=="ru":
+            bot.send_message(chatid, "Я не жду от вас фото. Попробуйте снова.")
+        else:
+            bot.send_message(chatid, "I'm not expecting a photo from you. Try again.")
+
 
 
     
