@@ -334,14 +334,14 @@ def generate(user, chatid):
 
                     url = str(pay.json()["image_url"]).replace("old.verif.tools","api.verifblog.com")
 
-                    
+                    name = url.split("/")[-1]
                     response = requests.get(url)
                     if response.status_code == 200:
-                        with open(str(chatid)+".jpg", "wb") as file:
+                        with open(name, "wb") as file:
                             file.write(response.content)
 
                         # Отправляем фотографию как локальный файл
-                        with open(str(chatid)+".jpg", "rb") as photo:
+                        with open(name, "rb") as photo:
                             bot.send_document(chatid, photo)
 
                     save_to_firebase(f"users/{chatid}/orders",url)
@@ -371,12 +371,13 @@ def generate(user, chatid):
                 url = str(pay.json()["image_url"]).replace("old.verif.tools","api.verifblog.com")
 
                 response = requests.get(url)
+                name = url.split("/")[-1]
                 if response.status_code == 200:
-                    with open(str(chatid)+".jpg", "wb") as file:
+                    with open(name, "wb") as file:
                         file.write(response.content)
 
                     # Отправляем фотографию как локальный файл
-                    with open(str(chatid)+".jpg", "rb") as photo:
+                    with open(name, "rb") as photo:
                         bot.send_document(chatid, photo)
                 save_to_firebase(f"users/{chatid}/orders",url)
             else:
@@ -415,12 +416,13 @@ def generatebonk(user, chatid):
         url = str(pay.json()["image_url"]).replace("old.verif.tools","api.verifblog.com")
 
         response = requests.get(url)
+        name = url.split("/")[-1]
         if response.status_code == 200:
-            with open("result_image.jpg", "wb") as file:
+            with open(name, "wb") as file:
                 file.write(response.content)
     
             # Отправляем фотографию как локальный файл
-            with open("result_image.jpg", "rb") as photo:
+            with open(name, "rb") as photo:
                 bot.send_document(chatid, photo)
         else:
             print("Ошибка загрузки изображения")
