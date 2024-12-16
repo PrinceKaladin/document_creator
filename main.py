@@ -25,7 +25,22 @@ auth = HTTPBasicAuth("viber.sell@gmail.com", "80675630393Roma")
 check_url = "https://api.verifblog.com/api/integration/generation-status"
 user_language={}
 # Инициализация Firebase
-cred = credentials.Certificate('firebase_key.json')  # Замените на путь к вашему файлу .json
+fb_key="""{
+  "type": "service_account",
+"project_id": "telegrampasportbot",
+  "private_key_id": "f01d8e63bc2c3758eff71ebb9e737486babb50b3",
+  "private_key": "-----BEGIN PRIVATE KEY-----\\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDXFTSKYwmkpAWA\\nzaceWMdu9NgZSXwXVmO9vM4mYhXItlZvD1IMtzyMOS7rE0IJwBEV+vnO+1BJJFeL\\n50OogxnrvesyE8NEl8afe7nyrhi3o/M733znsjIhjlRmFj5BiL8JrzmFaMz/d1dT\\nw7xoJcKIIowZczmU/eXK98UizjBemr6LCHciqxIVVbdiceNsPZIsJ648E6bjuTMj\\npXCawGXPuuXXNwkDE8kj8kBDo4jtB2tKVhM0RDQrxAqX3tLrFvStq2qEMAbz03NS\\n0hHrch8O8ofac5JA9rQOW9JfyqhTp1Ytwk9WxUs/sXMZi64Ltz1e0IQSxYEZf4OJ\\nobORhaT3AgMBAAECggEAIngkhnUey4L52s2aldN2isK0i0DqoTbYH0VN6HrZsOP/\\n8CaNaLpI+tQDP+tDLxrX4iTpuhEuqbooSaSThEMWeWBjfBAMwEZur4p9n3XlQjEF\\nPzgu5Vb6j8QmpIG2Enye2Sd62XWVPO/cT/FTlYFPrs+SklWUCduy4xdYQZ63w8FP\\ngI8D7z734eXQZzjOshiDvVKJh29r76/R0YIVi6IlVaEXqRSdagLLb9CW/qNR1YaJ\\njRy1Bj14qjs9VhfzBcmNgAFZg31jMW0zSIgVIeLJQ1HuMY8vDjxhdbYeg8AUouO1\\n6pWNnN7RH8Yg6Fq1/GjgUNvqejMZpshXH6Baqzzw8QKBgQD/vnwxmZl3M606BjWd\\n7Jk6hl7JougXT/I/JcvUA+kCDCrhucW0HX+WvZkg7Dgc68RhiTwkDir76q6HKYIV\\nvLsNkHRE0LLGlr5zETWuQhtkiBR4/AFUpr4m3EQwM+Npxaj3dfMAMtyGfav3A108\\ngNWHE/Fac5yS2dtKrf/PyPzW7wKBgQDXTE3Dww6OHN626AocoDNS/wLboR4GM+uT\\nK4278OkovFAmL4WAUOR5UDEIKAEqBz+ybkvsAYBGeLUyrAWAbFP5Z8dz+EyoTH+F\\nvBsLc+m5eeVPG1j/oi45ccR2w70d3q/87CEae2z/YybWCg1uz0dJAYZV6AxkcOCM\\nzYIZUYzSeQKBgQDLXht+icla3BItaRCr86BpxL6Nk2kCWMWnZ5PtleptgWV8OHE5\\n6Jc0NLMXViDNBsMUWMAlX8rYpueAfgZ+6KTKhYufyWHQv8DU2eOZHeKQkBHPn34j\\nZbEiT9g9iJWX3+GcXwQMrWVl4XulIty6pyyljLtJlVP2Bx32BeW9wvMkqwKBgG4n\\naSY+12SYms6kXAAXawsM1G6Aubbcu6v5vbOp5/Fin/NZnwlu2ebDw8JzjVzuhoWJ\\nbyjZ/8KOoc7COrJhOnnBwkewg7AcK6bF/mRWsv+lwVA/IsLwPIxBjA5jyY/Nzuct\\n/SXqfnMQTN94FzVZshRFRnEPn7+IDSudPfIsSkupAoGBAORE96OkPLoLkzXYAxc2\\nZpIaWFQLH/pIWGGYdqmbNcSH+pinDbED9DT6B6di/B9JdfBgyLfdgd51J98Ovdr8\\nw3cMLXvVfbn2zPbCvKgGkVXBCUxUYb7oZcI+f0l2gEyfhuGXYZ0bxXOWCvvm64qX\\nI7nl4MXMODYylKEWXVSeUMzX\\n-----END PRIVATE KEY-----\\n",
+  "client_email": "firebase-adminsdk-7x8vk@telegrampasportbot.iam.gserviceaccount.com",
+  "client_id": "104670815525630013630",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-7x8vk%40telegrampasportbot.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
+"""
+firebase_key = json.loads(fb_key)
+cred = credentials.Certificate(firebase_key)
 firebase_admin.initialize_app(cred, {
     'databaseURL': 'https://telegrampasportbot-default-rtdb.europe-west1.firebasedatabase.app/'  # Замените на ваш URL базы данных
 })
