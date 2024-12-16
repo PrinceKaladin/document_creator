@@ -1,18 +1,24 @@
 # Используем базовый образ Python
 FROM python:3.12-slim
 
-# Устанавливаем рабочую директорию в контейнере
+# Устанавливаем рабочую директорию
 WORKDIR /app
 
-# Копируем файлы проекта в контейнер
+# Копируем файлы проекта
 COPY main.py ./
 COPY requirements.txt ./
 COPY firebase_key.json ./  # Копируем ключ Firebase
 
+# Создаем нужные папки
+RUN mkdir -p /app/Firebase
+
+# Копируем папку Firebase, если она есть
+COPY Firebase /app/Firebase
+
 # Устанавливаем зависимости
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Скрипт для автоматического перезапуска в случае ошибки
+# Скрипт для автоматического перезапуска
 COPY restart.sh /app/restart.sh
 RUN chmod +x /app/restart.sh
 
