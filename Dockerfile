@@ -12,8 +12,7 @@ COPY firebase_key.json ./  # Копируем ключ Firebase
 # Создаем нужные папки
 RUN mkdir -p /app/Firebase
 
-# Копируем папку Firebase, если она есть
-COPY Firebase /app/Firebase
+
 
 # Устанавливаем зависимости
 RUN pip install --no-cache-dir -r requirements.txt
