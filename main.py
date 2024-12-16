@@ -761,10 +761,15 @@ def handle_create_document(message):
  
     balance = get_user_balance(message.chat.id)
     name = message.from_user.full_name
+    referers = ""
+    for i in get_all_user_ids():
+        if get_from_fb(f"users/{str(i)}/referrer")==str(message.chat.id):
+            referers+=f"{get_from_fb(f'users/{str(i)}/username')}\n"
+
     if user_language[message.chat.id]=="ru":
-        bot.send_message(message.chat.id, f"Имя: {name}\nБаланс:{balance}$",)
+        bot.send_message(message.chat.id, f"Имя: {name}\nБаланс:{balance}$\nрефералы:\n{referers}")
     else:
-        bot.send_message(message.chat.id, f"Name: {name}\nBalance:{balance}$",)
+        bot.send_message(message.chat.id, f"Name: {name}\nBalance:{balance}$\nreferrers:\n{referers}")
 
 # Обработчик нажатия кнопки "Создать документ"
 @bot.message_handler(func=lambda message: message.text == "Создать документ📃" or message.text == "Create Document📃")
@@ -961,6 +966,10 @@ def x(message):
             if get_from_fb(f"users/{i}/username").lower()==message.text.replace("@","").lower():
                 character_step[message.chat.id]=i
                 if not get_from_fb(f"users/{i}/ban") is None:
+                    referers=""
+                    for iks in get_all_user_ids():
+                        if get_from_fb(f"users/{str(iks)}/referrer")==str(i):
+                            referers+=f"{get_from_fb(f'users/{str(iks)}/username')}\n"
                     dannye=f"""
 Имя:{get_from_fb("users/"+i+"/name")}
 Ник:{get_from_fb("users/"+i+"/username")}
@@ -968,6 +977,7 @@ def x(message):
 Бан: Есть
 Дата регистрации:{get_from_fb("users/"+i+"/registration_date")}
 реферал:{get_from_fb("users/"+i+"/referal(%)")}%
+рефералы:{referers}
 """
                     zakazi=""
                     try:
@@ -986,13 +996,18 @@ def x(message):
                     admin_step[message.chat.id]="readyforknop"
                     bot.send_message(message.chat.id,"заказы:\n"+zakazi,reply_markup=markup)
                 else:
+                    referers=""
+                    for iks in get_all_user_ids():
+                        if get_from_fb(f"users/{str(iks)}/referrer")==str(i):
+                            referers+=f"{get_from_fb(f'users/{str(iks)}/username')}\n"
                     dannye=f"""
 Имя:{get_from_fb("users/"+i+"/name")}
 Ник:{get_from_fb("users/"+i+"/username")}
 Баланс:{get_from_fb("users/"+i+"/balance")} $
-Бан: Нет
+Бан: Есть
 Дата регистрации:{get_from_fb("users/"+i+"/registration_date")}
 реферал:{get_from_fb("users/"+i+"/referal(%)")}%
+рефералы:{referers}
 """
                     
                     try:
