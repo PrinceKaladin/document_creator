@@ -1449,22 +1449,32 @@ def handle_payment_response(message):
     else: 
         user_data[chatid]["main_shablon"]["BACKGROUND"] = "Print"
     markup = types.ReplyKeyboardMarkup(row_width=5)
-    for i in [1,5,9,13]:
-        con = types.KeyboardButton(str(i))
-        con1 = types.KeyboardButton(str(i+1))
-        con2 = types.KeyboardButton(str(i+2))
-        con3 = types.KeyboardButton(str(i+3))
-        markup.row(con,con1,con2,con3)
+    if user_cat[chatid] in ["Passport 📘","Паспорт 📘"] :
+        for i in [1,5,9,13]:
+            con = types.KeyboardButton(str(i))
+            con1 = types.KeyboardButton(str(i+1))
+            con2 = types.KeyboardButton(str(i+2))
+            con3 = types.KeyboardButton(str(i+3))
+            markup.row(con,con1,con2,con3)
+    else:
+        for i in [1,4,7]:
+            con = types.KeyboardButton(str(i))
+            con1 = types.KeyboardButton(str(i+1))
+            con2 = types.KeyboardButton(str(i+2))
+
+            markup.row(con,con1,con2)            
     if not user_cat[chatid] in ["Коммунальные услуги 🧾","Выписки из банка 🏦","Bank Statements 🏦","Utility Bills 🧾"]: 
         if user_language[chatid]=="ru":
-            media_group = [telebot.types.InputMediaPhoto(photo_id) for photo_id in idsph]
-            bot.send_media_group(message.chat.id, media_group)
-            bot.send_message(chatid, "Напишите номер фона (число от 1 до 16)",reply_markup=markup)
+            if user_cat[chatid] in ["Passport 📘","Паспорт 📘"] :
+                media_group = [telebot.types.InputMediaPhoto(photo_id) for photo_id in idsph]
+                bot.send_media_group(message.chat.id, media_group)
+            bot.send_message(chatid, "Напишите номер фона",reply_markup=markup)
             
         else:
-            media_group = [telebot.types.InputMediaPhoto(photo_id) for photo_id in idsph]
-            bot.send_media_group(message.chat.id, media_group)
-            bot.send_message(chatid, "Write the background number (a number from 1 to 16)",reply_markup=markup)
+            if user_cat[chatid] in ["Passport 📘","Паспорт 📘"] :
+                media_group = [telebot.types.InputMediaPhoto(photo_id) for photo_id in idsph]
+                bot.send_media_group(message.chat.id, media_group)
+            bot.send_message(chatid, "Write the background number",reply_markup=markup)
         current_step[chatid] = "waittingforbg"
     else:
         markup = types.ReplyKeyboardMarkup(row_width=5)
