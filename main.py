@@ -1116,7 +1116,7 @@ def x(message):
 Имя:{get_from_fb("users/"+i+"/name")}
 Ник:{get_from_fb("users/"+i+"/username")}
 Баланс:{get_from_fb("users/"+i+"/balance")} $
-Бан: Есть
+Бан: нет
 Дата регистрации:{get_from_fb("users/"+i+"/registration_date")}
 реферал:{get_from_fb("users/"+i+"/referal(%)")}%
 рефералы:{referers}
