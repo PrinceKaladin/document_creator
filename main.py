@@ -1500,8 +1500,8 @@ def handle_payment_response(message):
         if not user_cat[chatid] in ["Коммунальные услуги 🧾","Выписки из банка 🏦","Bank Statements 🏦","Utility Bills 🧾","Фотографии","Photos"]:
             try:
                 generate(user_data[chatid],chatid)
-            except:
-                bot.send_message(chatid,"ошибка со стороны сервера")
+            except Exception as e:
+                bot.send_message(chatid,"ошибка со стороны сервера "+e)
         else:
             try:
                 if user_cat[chatid] in ["Photos","Фотографии"]:
