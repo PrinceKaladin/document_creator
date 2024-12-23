@@ -112,7 +112,7 @@ documents = {
     "postbank statement 🇩🇪", "barclays statement 🇬🇧"
 ],
     "Credit cards 💳":["credit-card 💳" ],
-    "Photos":["drop generator 😊" ]
+    "Generate photo for documents":["drop generator 😊" ]
 }
 documents1 = {
     "Паспорт 📘": [
@@ -178,7 +178,7 @@ documents1 = {
     "postbank statement 🇩🇪", "barclays statement 🇬🇧"
 ],
     "Банковские карты 💳":["credit-card 💳" ],
-    "Фотографии":["drop generator 😊" ]
+    "Генерировать фото для документов":["drop generator 😊" ]
 
 }
 
@@ -207,11 +207,8 @@ def glavnoe_menu(chatid):
         markup.row(create_document_button5,create_document_button6)
         markup.add( types.KeyboardButton("Invite friends📩"))
         if str(chatid) in get_all_admins_ids():
-            markup.add( types.KeyboardButton("Рассылка"))
-            markup.add( types.KeyboardButton("Добавить админов"))
-            markup.add( types.KeyboardButton("Убрать админов"))
-            markup.add( types.KeyboardButton("Пользователи"))
-            markup.add( types.KeyboardButton("Изменить реферал всем"))
+            markup.add( types.KeyboardButton("Меню админа"))
+
 
 
         # Отправляем приветственное сообщение и показываем кнопку
@@ -233,11 +230,8 @@ def glavnoe_menu(chatid):
         markup.add( types.KeyboardButton("Пригласить друзей📩"))
 
         if str(chatid) in get_all_admins_ids():
-            markup.add( types.KeyboardButton("Рассылка"))
-            markup.add( types.KeyboardButton("Добавить админов"))
-            markup.add( types.KeyboardButton("Убрать админов"))
-            markup.add( types.KeyboardButton("Пользователи"))
-            markup.add( types.KeyboardButton("Изменить реферал всем"))
+            markup.add( types.KeyboardButton("Меню админа"))
+
 
         # Отправляем приветственное сообщение и показываем кнопку
         bot.send_message(chatid, "Нажми на кнопку ниже, чтобы начать.", reply_markup=markup)
@@ -293,6 +287,47 @@ def update_user_balance(chatid, amount):
         print(f"Баланс пользователя {chatid} обновлен. Новый баланс: {new_balance}")
     else:
         print(f"Пользователь с chatid {chatid} не найден.")
+
+def extract_channel_identifier(channel_link: str) -> str:
+    """
+    Извлекает идентификатор канала из ссылки.
+
+    :param channel_link: Ссылка на канал (например, 'https://t.me/your_channel_username' или '@your_channel_username').
+    :return: Идентификатор канала (username или chat_id).
+    """
+    if channel_link.startswith("https://t.me/"):
+        return channel_link.split("/")[-1]
+    elif channel_link.startswith("@"):
+        return channel_link[1:]
+    else:
+        return channel_link  # Предполагаем, что это уже username или chat_id
+
+def is_user_subscribed( channel_link: str, user_id: int) -> bool:
+    """
+    Проверяет, подписан ли пользователь на указанный канал.
+
+    :param bot: Экземпляр TeleBot.
+    :param channel_link: Ссылка на канал (например, 'https://t.me/your_channel_username' или '@your_channel_username').
+    :param user_id: Идентификатор пользователя.
+    :return: True, если подписан, иначе False.
+    """
+    
+    channel_identifier = extract_channel_identifier(channel_link)
+    # Если идентификатор начинается с -100, это chat_id приватного канала
+    if channel_identifier.startswith("-100"):
+        chat_id = int(channel_identifier)
+    else:
+        chat_id = f"@{channel_identifier}"  # Для публичных каналов используем @username
+
+    # Получаем информацию о пользователе в канале
+    member = bot.get_chat_member(chat_id, user_id)
+
+    # Проверяем статус пользователя в канале
+    if member.status in ["creator", "administrator", "member"]:
+        return True
+    else:
+        return False
+
 
 def save_to_firebase(path, value):
     # Генерация ключа как текущее время (метка времени в секундах)
@@ -667,16 +702,47 @@ invoice_checker_thread.start()
 @bot.message_handler(commands=['start'])
 def start_handler(message):
     chat_id = message.chat.id
+    
+    if( is_user_subscribed(get_from_fb("rassilka/tgchan"),chat_id)):
+        
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
+        markup.row("🇬🇧 English", "🇷🇺 Русский")  # Добавляем кнопки языков
+        bot.send_message(chat_id, "Please select your language / Пожалуйста, выберите язык:", reply_markup=markup)
+        user_language[chat_id] = None  # Ожидание выбора языка
+        chatid = message.chat.id
+        username = message.from_user.username  # Получаем username пользователя
+        name = message.from_user.full_name
+        add_user(chatid,username,name,message)
+    else:
+        markup = types.ReplyKeyboardMarkup()
+    
+        markup.add(types.KeyboardButton("Проверить подписку"))
+        subscribe_text = "Пожалуйста, подпишитесь на наш канал, чтобы продолжить / Please, subscribe to channel to continue\n"+f"<a href='{get_from_fb("rassilka/tgchan")}'>Подписаться</a>"
+        chat_id = message.chat.id
+        bot.send_message(chat_id, subscribe_text, reply_markup=markup, parse_mode="HTML")
+@bot.message_handler(func=lambda message: message.text.lower() == "проверить подписку")
+def callback_check_sub(message):
 
-    # Создаем клавиатуру для выбора языка
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
-    markup.row("🇬🇧 English", "🇷🇺 Русский")  # Добавляем кнопки языков
-    bot.send_message(chat_id, "Please select your language / Пожалуйста, выберите язык:", reply_markup=markup)
-    user_language[chat_id] = None  # Ожидание выбора языка
-    chatid = message.chat.id
-    username = message.from_user.username  # Получаем username пользователя
-    name = message.from_user.full_name
-    add_user(chatid,username,name,message)
+    chat_id = message.chat.id  # Или call.message.chat.id, в зависимости от контекста
+    if( is_user_subscribed(get_from_fb("rassilka/tgchan"),chat_id)):
+        
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
+        markup.row("🇬🇧 English", "🇷🇺 Русский")  # Добавляем кнопки языков
+        bot.send_message(chat_id, "Please select your language / Пожалуйста, выберите язык:", reply_markup=markup)
+        user_language[chat_id] = None  # Ожидание выбора языка
+        chatid = message.chat.id
+        username = message.from_user.username  # Получаем username пользователя
+        name = message.from_user.full_name
+        add_user(chatid,username,name,message)
+    else:
+        markup = types.ReplyKeyboardMarkup()
+        
+        markup.add(types.KeyboardButton("Проверить подписку"))
+        
+        subscribe_text = f"Вы еще не подписались\n<a href='{get_from_fb("rassilka/tgchan")}'>Подписаться</a>"
+
+        chat_id = message.chat.id
+        bot.send_message(chat_id, subscribe_text, reply_markup=markup, parse_mode="HTML")
 
 
 @bot.message_handler(func=lambda message: message.text.lower() == "пригласить друзей📩" or message.text.lower() == "invite friends📩")
@@ -719,11 +785,8 @@ def language_selection_handler(message):
         name = message.from_user.full_name
         add_user(chatid,username, name,message)
         if str(chat_id) in get_all_admins_ids():
-            markup.add( types.KeyboardButton("Рассылка"))
-            markup.add( types.KeyboardButton("Добавить админов"))
-            markup.add( types.KeyboardButton("Убрать админов"))
-            markup.add( types.KeyboardButton("Пользователи"))
-            markup.add( types.KeyboardButton("Изменить реферал всем"))
+            markup.add( types.KeyboardButton("Меню админа"))
+
 
         # Отправляем приветственное сообщение и показываем кнопку
         bot.send_message(message.chat.id, "Hello! I will help you create a document. Click the button below to get started.", reply_markup=markup)
@@ -746,11 +809,8 @@ def language_selection_handler(message):
         markup.add( types.KeyboardButton("Пригласить друзей📩"))
 
         if str(chat_id) in get_all_admins_ids():
-            markup.add( types.KeyboardButton("Рассылка"))
-            markup.add( types.KeyboardButton("Добавить админов"))
-            markup.add( types.KeyboardButton("Убрать админов"))
-            markup.add( types.KeyboardButton("Пользователи"))
-            markup.add( types.KeyboardButton("Изменить реферал всем"))
+            markup.add( types.KeyboardButton("Меню админа"))
+
 
 
         
@@ -934,7 +994,7 @@ def ask_next_question(chatid):
     step_index = current_step[chatid]["step_index"]
     field_index = current_step[chatid]["field_index"]
     steps = user_data[chatid]["steps"]
-    if not user_cat[chatid] in ['Фотографии',"Photos"]:
+    if not user_cat[chatid] in ['Генерировать фото для документов',"Generate photo for documents"]:
         if step_index < len(steps)-1 :
             fields = steps[step_index]["fields"]
             if field_index < len(fields):
@@ -1014,11 +1074,13 @@ def x(message):
     markup.add(create_document_button1)
 
     bot.send_message(message.chat.id, "Выберите нужное действие", reply_markup=markup)
-@bot.message_handler(func=lambda message: message.text == "Рассылка" and str(message.chat.id) in get_all_admins_ids())
+@bot.message_handler(func=lambda message: message.text == "Меню админа" and str(message.chat.id) in get_all_admins_ids())
 def x(message):
 
     markup = types.ReplyKeyboardMarkup()
     markup.add(types.KeyboardButton("назад"))
+    markup.add(types.KeyboardButton("Канал телеграмм"))
+    markup.add(types.KeyboardButton("Начать рассылку"))
     markup.add(types.KeyboardButton("Текст рассылки"))
     markup.add(types.KeyboardButton("Медиа рассылки"))
     markup.add(types.KeyboardButton("Удалить все медиа"))
@@ -1029,7 +1091,11 @@ def x(message):
     markup.add(types.KeyboardButton("Редактировать FAQ EN"))
     markup.add(types.KeyboardButton("Редактировать правила EN"))
     markup.add(types.KeyboardButton("Редактировать канал EN"))
-    markup.add(types.KeyboardButton("Редактировать поддержку EN"))    
+    markup.add(types.KeyboardButton("Редактировать поддержку EN")) 
+    markup.add( types.KeyboardButton("Добавить админов"))
+    markup.add( types.KeyboardButton("Убрать админов"))
+    markup.add( types.KeyboardButton("Пользователи"))
+    markup.add( types.KeyboardButton("Изменить реферал всем"))   
     bot.send_message(message.chat.id,"Выберите действие", reply_markup=markup) 
 @bot.message_handler(func=lambda message: message.text == "Редактировать FAQ RU" and str(message.chat.id) in get_all_admins_ids())
 def x(message):
@@ -1156,7 +1222,7 @@ def x(message):
 Имя:{get_from_fb("users/"+i+"/name")}
 Ник:{get_from_fb("users/"+i+"/username")}
 Баланс:{get_from_fb("users/"+i+"/balance")} $
-Бан: Есть
+Бан: Нет
 Дата регистрации:{get_from_fb("users/"+i+"/registration_date")}
 реферал:{get_from_fb("users/"+i+"/referal(%)")}%
 рефералы:{referers}
@@ -1268,7 +1334,10 @@ def x(message):
 def handle_text_rassilka(message):
     current_action[message.chat.id] = "text"  # Сохраняем состояние для пользователя
     bot.send_message(message.chat.id, "Введите текст для рассылки:")
-
+@bot.message_handler(func=lambda message: message.text == "Канал телеграмм" and str(message.chat.id) in get_all_admins_ids())
+def handle_text_rassilka(message):
+    current_action[message.chat.id] = "tgchan"  # Сохраняем состояние для пользователя
+    bot.send_message(message.chat.id, "Введите текст для канала:")
 
 @bot.message_handler(func=lambda message: message.text == "Удалить все медиа" and str(message.chat.id) in get_all_admins_ids())
 def handle_media_rassilka(message):
@@ -1288,6 +1357,15 @@ def save_text_rassilka(message):
     ref.set(message.text)
     bot.send_message(message.chat.id, "Текст для рассылки сохранён.")
     current_action.pop(message.chat.id, None)  # Сбрасываем состояние
+@bot.message_handler(func=lambda message: current_action.get(message.chat.id) == "tgchan")
+def save_text_rassilka(message):
+    # Сохраняем текст в Firebase
+    ref = db.reference("rassilka/tgchan")
+    ref.set(message.text)
+    bot.send_message(message.chat.id, "Текст для Телеграм канала сохранён.")
+    current_action.pop(message.chat.id, None)  # Сбрасываем состояние
+
+
 
 
 
@@ -1382,11 +1460,8 @@ def handle_cancel(message):
         markup.row(create_document_button3,create_document_button4)
         markup.row(create_document_button5,create_document_button6)
         if str(chatid) in get_all_admins_ids():
-            markup.add( types.KeyboardButton("Рассылка"))
-            markup.add( types.KeyboardButton("Добавить админов"))
-            markup.add( types.KeyboardButton("Убрать админов"))
-            markup.add( types.KeyboardButton("Пользователи"))
-            markup.add( types.KeyboardButton("Изменить реферал всем"))
+            markup.add( types.KeyboardButton("Меню админа"))
+ 
         markup.add( types.KeyboardButton("Invite friends📩"))
         chatid = message.chat.id
         username = message.from_user.username  # Получаем username пользователя
@@ -1410,11 +1485,8 @@ def handle_cancel(message):
         markup.row(create_document_button5,create_document_button6)
         markup.add( types.KeyboardButton("Пригласить друзей📩"))
         if str(chatid) in get_all_admins_ids():
-            markup.add( types.KeyboardButton("Рассылка"))
-            markup.add( types.KeyboardButton("Добавить админов"))
-            markup.add( types.KeyboardButton("Убрать админов"))
-            markup.add( types.KeyboardButton("Пользователи"))
-            markup.add( types.KeyboardButton("Изменить реферал всем"))
+            markup.add( types.KeyboardButton("Меню админа"))
+
 
         chatid = message.chat.id
         username = message.from_user.username  # Получаем username пользователя
@@ -1464,7 +1536,7 @@ def handle_answer(message):
 
     ask_next_question(chatid)
 def finalize_blank(chatid):
-    if not user_cat[chatid] in ["Коммунальные услуги 🧾","Выписки из банка 🏦","Bank Statements 🏦","Utility Bills 🧾","Фотографии","Photos","Банковские карты 💳","Credit cards 💳"]: 
+    if not user_cat[chatid] in ["Коммунальные услуги 🧾","Выписки из банка 🏦","Bank Statements 🏦","Utility Bills 🧾","Генерировать фото для документов","Generate photo for documents","Банковские карты 💳","Credit cards 💳"]: 
         current_step[chatid] = "waiting_for_first_photo"
         if user_language[chatid] == "ru":
             bot.send_message(chatid, "Пожалуйста, отправьте фото для завершения.")
@@ -1497,14 +1569,15 @@ def handle_payment_response(message):
     if message.text.lower() == "да" or message.text.lower() == "yes":
         update_user_balance(chatid,-float(user_data[chatid]["price"]))
         print(user_cat[chatid])
-        if not user_cat[chatid] in ["Коммунальные услуги 🧾","Выписки из банка 🏦","Bank Statements 🏦","Utility Bills 🧾","Фотографии","Photos"]:
+        if not user_cat[chatid] in ["Коммунальные услуги 🧾","Выписки из банка 🏦","Bank Statements 🏦","Utility Bills 🧾","Генерировать фото для документов","Generate photo for documents"]:
             try:
                 generate(user_data[chatid],chatid)
             except Exception as e:
-                bot.send_message(chatid,"ошибка со стороны сервера "+e)
+                bot.send_message(chatid,"ошибка со стороны сервера ")
+                print(e)
         else:
             try:
-                if user_cat[chatid] in ["Photos","Фотографии"]:
+                if user_cat[chatid] in ["Generate photo for documents","Генерировать фото для документов"]:
                     generatebonk(user_data[chatid],chatid)
                 else:
                     generatebonk(user_data[chatid],chatid)
@@ -1525,11 +1598,13 @@ def handle_payment_response(message):
 def handle_payment_response(message):
     chatid = message.chat.id
     if message.text.lower() == "photo":
-        user_data[chatid]["main_shablon"]["BACKGROUND"] = "Photo"
+        user_data[chatid]["main_shablon"]["BACKGROUND"] = "PHOTO"
     elif message.text.lower() == "scan":
-        user_data[chatid]["main_shablon"]["BACKGROUND"] = "Scan"
+        user_data[chatid]["main_shablon"]["BACKGROUND"] = "SCAN"
+    elif message.text.lower() == "print":
+        user_data[chatid]["main_shablon"]["BACKGROUND"] = "PRINT"
     else: 
-        user_data[chatid]["main_shablon"]["BACKGROUND"] = "Print"
+        user_data[chatid]["main_shablon"]["BACKGROUND"] = "PHOTO"
     markup = types.ReplyKeyboardMarkup(row_width=5)
     if user_cat[chatid] in ["Passport 📘","Паспорт 📘"] :
         for i in [1,5,9,13]:
@@ -1545,7 +1620,7 @@ def handle_payment_response(message):
             con2 = types.KeyboardButton(str(i+2))
 
             markup.row(con,con1,con2)            
-    if not user_cat[chatid] in ["Коммунальные услуги 🧾","Выписки из банка 🏦","Bank Statements 🏦","Utility Bills 🧾","Фотографии","Photos"]: 
+    if not user_cat[chatid] in ["Коммунальные услуги 🧾","Выписки из банка 🏦","Bank Statements 🏦","Utility Bills 🧾","Генерировать фото для документов","Generate photo for documents"]: 
         if user_language[chatid]=="ru":
             if user_cat[chatid] in ["Passport 📘","Паспорт 📘"] :
                 media_group = [telebot.types.InputMediaPhoto(photo_id) for photo_id in idsph]
@@ -1622,7 +1697,7 @@ def handle_payment_response(message):
             current_step[chatid] = "waiting_for_ct"
             bot.send_message(chatid, f"Choose the card type",reply_markup=markup)
             bot.send_photo(chatid,"AgACAgIAAxkBAAIjzGdpUTWjR5F8cnih_HEMMv9jHnqTAAL86jEbXxFISwQ4wdi-ZQizAQADAgADeQADNgQ")
-    user_data[chatid]["main_shablon"]["BACKGROUND"] = "Print"        
+           
 @bot.message_handler(func=lambda message: message.chat.id in current_step and current_step[message.chat.id] == "waiting_for_ct")
 def x(message):
     chatid = message.chat.id
@@ -1828,8 +1903,6 @@ def handle_photo(message):
 while True:
     try:
       bot.polling() 
-        
-
     except Exception as e:
         print(f"Ошибка: {e}. Перезапуск через 5 секунд...")
         time.sleep(5)  # Задержка перед перезапуском
