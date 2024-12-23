@@ -1550,12 +1550,21 @@ def handle_payment_response(message):
             if user_cat[chatid] in ["Passport 📘","Паспорт 📘"] :
                 media_group = [telebot.types.InputMediaPhoto(photo_id) for photo_id in idsph]
                 bot.send_media_group(message.chat.id, media_group)
+            elif user_cat[chatid] in ["Банковские карты 💳","Credit cards 💳"]:
+                bot.send_photo(message.chat.id, "AgACAgIAAxkBAAIkyWdpXnkjdBo5qix2NizgV1hlrxgDAAJ76zEbXxFIS2wOHhFd6JIcAQADAgADeQADNgQ")
+            else:
+                bot.send_message(chatid, "Отображение фонов в боте недоступно для данного типа документа",reply_markup=markup)
+
             bot.send_message(chatid, "Напишите номер фона",reply_markup=markup)
             
         else:
             if user_cat[chatid] in ["Passport 📘","Паспорт 📘"] :
                 media_group = [telebot.types.InputMediaPhoto(photo_id) for photo_id in idsph]
                 bot.send_media_group(message.chat.id, media_group)
+            elif user_cat[chatid] in ["Банковские карты 💳","Credit cards 💳"]:
+                bot.send_photo(message.chat.id, "AgACAgIAAxkBAAIkyWdpXnkjdBo5qix2NizgV1hlrxgDAAJ76zEbXxFIS2wOHhFd6JIcAQADAgADeQADNgQ")
+            else:
+                bot.send_message(chatid, "Displaying backgrounds in the bot is not available for this document type",reply_markup=markup)
             bot.send_message(chatid, "Write the background number",reply_markup=markup)
         current_step[chatid] = "waittingforbg"
     else:
