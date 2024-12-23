@@ -84,7 +84,7 @@ documents = {
     "romania dl 🇷🇴", "slovakia dl 🇸🇰", "south korea dl 🇰🇷", "spain dl 🇪🇸", "sweden dl 🇸🇪"
 ],
     "ID Card 🆔": [
-    "usa id 🇺🇸", "uk id 🇬🇧", "china id 🇨🇳", "germany id 🇩🇪", "france id 🇫🇷", "austria id 🇦🇹",
+    "usa id 🇺🇸", "china id 🇨🇳", "germany id 🇩🇪", "france id 🇫🇷", "austria id 🇦🇹",
     "belgium id 🇧🇪", "bulgaria passport 🇧🇬", "czech id 🇨🇿", "estonia id 🇪🇪", "finland id 🇫🇮",
     "greece id card 🇬🇷", "hungary id 🇭🇺", "ireland passport card 🇮🇪", "italy id 🇮🇹",
     "kazakhstan id 🇰🇿", "latvia id 🇱🇻", "lithuania residense card 🇱🇹", "malaysia id 🇲🇾",
@@ -110,7 +110,9 @@ documents = {
     "citibank statement pdf 🇺🇸", "bank of america statement 🇺🇸",
     "chase statement 🇺🇸", "nets statement 🇸🇬", "revolut statement 🇬🇧",
     "postbank statement 🇩🇪", "barclays statement 🇬🇧"
-]
+],
+    "Credit cards 💳":["credit-card 💳" ],
+    "Photos":["drop generator 😊" ]
 }
 documents1 = {
     "Паспорт 📘": [
@@ -148,7 +150,7 @@ documents1 = {
     "romania dl 🇷🇴", "slovakia dl 🇸🇰", "south korea dl 🇰🇷", "spain dl 🇪🇸", "sweden dl 🇸🇪"
 ],
     "ID Карты 🆔": [
-    "usa id 🇺🇸", "uk id 🇬🇧", "china id 🇨🇳", "germany id 🇩🇪", "france id 🇫🇷", "austria id 🇦🇹",
+    "usa id 🇺🇸", "china id 🇨🇳", "germany id 🇩🇪", "france id 🇫🇷", "austria id 🇦🇹",
     "belgium id 🇧🇪", "bulgaria passport 🇧🇬", "czech id 🇨🇿", "estonia id 🇪🇪", "finland id 🇫🇮",
     "greece id card 🇬🇷", "hungary id 🇭🇺", "ireland passport card 🇮🇪", "italy id 🇮🇹",
     "kazakhstan id 🇰🇿", "latvia id 🇱🇻", "lithuania residense card 🇱🇹", "malaysia id 🇲🇾",
@@ -174,7 +176,10 @@ documents1 = {
     "citibank statement pdf 🇺🇸", "bank of america statement 🇺🇸",
     "chase statement 🇺🇸", "nets statement 🇸🇬", "revolut statement 🇬🇧",
     "postbank statement 🇩🇪", "barclays statement 🇬🇧"
-]
+],
+    "Банковские карты 💳":["credit-card 💳" ],
+    "Фотографии":["drop generator 😊" ]
+
 }
 
 bot = telebot.TeleBot(TOKEN)
@@ -433,6 +438,55 @@ def generatebonk(user, chatid):
         bot.send_message(chatid, "У вас возникла ошибка при вводе данных. Пожалуйста, повторите попытку")
 
     glavnoe_menu(chatid)
+def generatebonkx(user, chatid):
+
+    data = {
+            "data": json.dumps(user["main_shablon"]),
+            "generator": "drop_generator"
+        }
+    
+    files = {key: (None, value) for key, value in data.items()}
+
+    response = requests.post(generate_url, files=files)
+    if response.status_code == 201:
+        data = response.json()
+        print("pay", data["task_id"])
+        bot.send_message(chatid, "Ожидайте, фотография генерируется...",reply_markup=types.ReplyKeyboardRemove())
+        time.sleep(5)
+
+        pay = requests.get("https://api.verifblog.com/api/integration/generation-status/"+data["task_id"],params = {"_": time.time()}).json()
+        while pay["task_status"]!="end" and pay["task_status"]!="user_code_error" :
+            time.sleep(3)
+            print(pay)
+            pay = requests.get("https://api.verifblog.com/api/integration/generation-status/"+data["task_id"],params = {"_": time.time()}).json()
+        if pay["task_status"]=="0":
+            bot.send_message(chatid, "У вас возникла ошибка при вводе данных. Пожалуйста, повторите попытку")
+            print(pay)
+            return
+
+        pay = requests.post(pay_url,data={"task_id":data["task_id"]},auth = auth)
+        print(pay.text)
+
+        url = str(pay.json()["image_url"]).replace("old.verif.tools","api.verifblog.com")
+
+        response = requests.get(url)
+        name = str(chatid) + url.split("/")[-1]
+        if response.status_code == 200:
+            with open(name, "wb") as file:
+                file.write(response.content)
+    
+            # Отправляем фотографию как локальный файл
+            with open(name, "rb") as photo:
+                bot.send_document(chatid, photo)
+        else:
+            print("Ошибка загрузки изображения")
+        save_to_firebase(f"users/{chatid}/orders",url)
+    else:
+        print (response.json())
+        bot.send_message(chatid, "У вас возникла ошибка при вводе данных. Пожалуйста, повторите попытку")
+
+    glavnoe_menu(chatid)
+
 def get_all_user_ids():
     # Ссылка на узел /users
     ref = db.reference('users')
@@ -880,24 +934,40 @@ def ask_next_question(chatid):
     step_index = current_step[chatid]["step_index"]
     field_index = current_step[chatid]["field_index"]
     steps = user_data[chatid]["steps"]
-    
-    if step_index < len(steps)-1 :
-        fields = steps[step_index]["fields"]
-        if field_index < len(fields):
-            field = fields[field_index]
-            question = f"{field['input_label']}. Example(Пример): {field['input_placeholder']}"
-            user_data[chatid]["required"] = field["required"]
-            bot.send_message(chatid, question, reply_markup=markup)
-        else:
-            # Переход к следующему шагу
-            current_step[chatid]["step_index"] += 1
-            current_step[chatid]["field_index"] = 0
-            ask_next_question(chatid)
+    if not user_cat[chatid] in ['Фотографии',"Photos"]:
+        if step_index < len(steps)-1 :
+            fields = steps[step_index]["fields"]
+            if field_index < len(fields):
+                field = fields[field_index]
+                question = f"{field['input_label']}. Example(Пример): {field['input_placeholder']}"
+                user_data[chatid]["required"] = field["required"]
+                bot.send_message(chatid, question, reply_markup=markup)
+            else:
+                # Переход к следующему шагу
+                current_step[chatid]["step_index"] += 1
+                current_step[chatid]["field_index"] = 0
+                ask_next_question(chatid)
 
+        else:
+            # Все вопросы заданы
+            finalize_blank(chatid)
     else:
-        # Все вопросы заданы
-        finalize_blank(chatid)
-        
+        if step_index < len(steps) :
+            fields = steps[step_index]["fields"]
+            if field_index < len(fields):
+                field = fields[field_index]
+                question = f"{field['input_label']}. Example(Пример): {field['input_placeholder']}"
+                user_data[chatid]["required"] = field["required"]
+                bot.send_message(chatid, question, reply_markup=markup)
+            else:
+                # Переход к следующему шагу
+                current_step[chatid]["step_index"] += 1
+                current_step[chatid]["field_index"] = 0
+                ask_next_question(chatid)
+
+        else:
+            # Все вопросы заданы
+            finalize_blank_photo(chatid)
 @bot.message_handler(func=lambda message: message.text == "Добавить админов" and str(message.chat.id) in get_all_admins_ids())
 def x(message):
     bot.send_message(message.chat.id, "Напишите никнейм админа")
@@ -1116,7 +1186,7 @@ def x(message):
 Имя:{get_from_fb("users/"+i+"/name")}
 Ник:{get_from_fb("users/"+i+"/username")}
 Баланс:{get_from_fb("users/"+i+"/balance")} $
-Бан: нет
+Бан: Есть
 Дата регистрации:{get_from_fb("users/"+i+"/registration_date")}
 реферал:{get_from_fb("users/"+i+"/referal(%)")}%
 рефералы:{referers}
@@ -1370,7 +1440,7 @@ def handle_photo(message):
         current_step[chatid] = "waiting_for_psp"
 
 
-@bot.message_handler(func=lambda message: message.chat.id in current_step and not current_step[message.chat.id] == "waiting_for_payment"and not current_step[message.chat.id] == "waiting_for_first_photo"and not current_step[message.chat.id] == "waiting_for_second_photo" and not current_step[message.chat.id] == "waittingforbg"and not current_step[message.chat.id] == "waiting_for_psp")
+@bot.message_handler(func=lambda message: message.chat.id in current_step and not current_step[message.chat.id] == "waiting_for_payment"and not current_step[message.chat.id] == "waiting_for_first_photo"and not current_step[message.chat.id] == "waiting_for_second_photo" and not current_step[message.chat.id] == "waittingforbg"and not current_step[message.chat.id] == "waiting_for_psp"and not current_step[message.chat.id] == "waiting_for_ct")
 def handle_answer(message):
     """Обрабатывает ответ пользователя."""
     chatid = message.chat.id
@@ -1394,7 +1464,7 @@ def handle_answer(message):
 
     ask_next_question(chatid)
 def finalize_blank(chatid):
-    if not user_cat[chatid] in ["Коммунальные услуги 🧾","Выписки из банка 🏦","Bank Statements 🏦","Utility Bills 🧾"]: 
+    if not user_cat[chatid] in ["Коммунальные услуги 🧾","Выписки из банка 🏦","Bank Statements 🏦","Utility Bills 🧾","Фотографии","Photos","Банковские карты 💳","Credit cards 💳"]: 
         current_step[chatid] = "waiting_for_first_photo"
         if user_language[chatid] == "ru":
             bot.send_message(chatid, "Пожалуйста, отправьте фото для завершения.")
@@ -1412,20 +1482,32 @@ def finalize_blank(chatid):
             bot.send_message(chatid, " Теперь выберите тип файла для сохранения",reply_markup=markup)
         else:
             bot.send_message(chatid, " Now select the file type to save",reply_markup=markup)
+def finalize_blank_photo(chatid):
+    markup = types.ReplyKeyboardMarkup(row_width=5)
+    current_step[chatid]= "waiting_for_payment"
+    create_document_button = types.KeyboardButton("Да")
+    create_document_button1 = types.KeyboardButton("Нет")
+    markup.add(create_document_button,create_document_button1)
+    price = float(user_data.get(chatid, {}).get("price", 0))
+    bot.send_message(chatid, f"Пожалуйста, оплатите {price} $. Подтвердите оплату, отправив 'Да', или отмените, отправив 'Нет'.",reply_markup=markup)
 
 @bot.message_handler(func=lambda message: message.chat.id in current_step and current_step[message.chat.id] == "waiting_for_payment")
 def handle_payment_response(message):
     chatid = message.chat.id
     if message.text.lower() == "да" or message.text.lower() == "yes":
         update_user_balance(chatid,-float(user_data[chatid]["price"]))
-        if not user_cat[chatid] in ["Коммунальные услуги 🧾","Выписки из банка 🏦","Bank Statements 🏦","Utility Bills 🧾"]:
+        print(user_cat[chatid])
+        if not user_cat[chatid] in ["Коммунальные услуги 🧾","Выписки из банка 🏦","Bank Statements 🏦","Utility Bills 🧾","Фотографии","Photos"]:
             try:
                 generate(user_data[chatid],chatid)
             except:
                 bot.send_message(chatid,"ошибка со стороны сервера")
         else:
             try:
-                generatebonk(user_data[chatid],chatid)
+                if user_cat[chatid] in ["Photos","Фотографии"]:
+                    generatebonk(user_data[chatid],chatid)
+                else:
+                    generatebonk(user_data[chatid],chatid)
             except:
                 bot.send_message(chatid,"ошибка со стороны сервера")
 
@@ -1463,7 +1545,7 @@ def handle_payment_response(message):
             con2 = types.KeyboardButton(str(i+2))
 
             markup.row(con,con1,con2)            
-    if not user_cat[chatid] in ["Коммунальные услуги 🧾","Выписки из банка 🏦","Bank Statements 🏦","Utility Bills 🧾"]: 
+    if not user_cat[chatid] in ["Коммунальные услуги 🧾","Выписки из банка 🏦","Bank Statements 🏦","Utility Bills 🧾","Фотографии","Photos"]: 
         if user_language[chatid]=="ru":
             if user_cat[chatid] in ["Passport 📘","Паспорт 📘"] :
                 media_group = [telebot.types.InputMediaPhoto(photo_id) for photo_id in idsph]
@@ -1502,12 +1584,48 @@ def handle_payment_response(message):
     user_data[chatid]["main_shablon"]["BACKGROUND_NUMBER"] = message.text
     price = float(user_data.get(chatid, {}).get("price", 0))
     markup = types.ReplyKeyboardMarkup(row_width=5)
+    if not user_cat[chatid] in ["Банковские карты 💳","Credit cards 💳"]:
+
+        if user_language[chatid]=="ru":
+            create_document_button = types.KeyboardButton("Да")
+            create_document_button1 = types.KeyboardButton("Нет")
+            markup.add(create_document_button,create_document_button1)
+            current_step[chatid] = "waiting_for_payment"
+            bot.send_message(chatid, f"Пожалуйста, оплатите {price} $. Подтвердите оплату, отправив 'Да', или отмените, отправив 'Нет'.",reply_markup=markup)
+
+        else:
+            create_document_button = types.KeyboardButton("Yes")
+            create_document_button1 = types.KeyboardButton("No")
+            markup.add(create_document_button,create_document_button1)
+            current_step[chatid] = "waiting_for_payment"
+            bot.send_message(chatid, f"Please pay {price} $. Confirm payment by sending 'Yes' or cancel by sending 'No'.",reply_markup=markup)
+    else:
+        if user_language[chatid]=="ru":
+            markup.row(types.KeyboardButton("1"),types.KeyboardButton("2"),types.KeyboardButton("3"))
+            markup.row(types.KeyboardButton("4"),types.KeyboardButton("5"),types.KeyboardButton("6"),types.KeyboardButton("7"))
+            current_step[chatid] = "waiting_for_ct"
+            bot.send_message(chatid, f"Выберите вид карты",reply_markup=markup)
+            bot.send_photo(chatid,"AgACAgIAAxkBAAIjzGdpUTWjR5F8cnih_HEMMv9jHnqTAAL86jEbXxFISwQ4wdi-ZQizAQADAgADeQADNgQ")
+            
+        else:
+            markup.row(types.KeyboardButton("1"),types.KeyboardButton("2"),types.KeyboardButton("3"))
+            markup.row(types.KeyboardButton("4"),types.KeyboardButton("5"),types.KeyboardButton("6"),types.KeyboardButton("7"))
+            current_step[chatid] = "waiting_for_ct"
+            bot.send_message(chatid, f"Choose the card type",reply_markup=markup)
+            bot.send_photo(chatid,"AgACAgIAAxkBAAIjzGdpUTWjR5F8cnih_HEMMv9jHnqTAAL86jEbXxFISwQ4wdi-ZQizAQADAgADeQADNgQ")
+    user_data[chatid]["main_shablon"]["BACKGROUND"] = "Print"        
+@bot.message_handler(func=lambda message: message.chat.id in current_step and current_step[message.chat.id] == "waiting_for_ct")
+def x(message):
+    chatid = message.chat.id
+    user_data[chatid]["main_shablon"]["CARD_BACKGROUND"] = message.text
+    price = float(user_data.get(chatid, {}).get("price", 0))
+    markup = types.ReplyKeyboardMarkup(row_width=5)
     if user_language[chatid]=="ru":
-        create_document_button = types.KeyboardButton("Да")
-        create_document_button1 = types.KeyboardButton("Нет")
-        markup.add(create_document_button,create_document_button1)
-        current_step[chatid] = "waiting_for_payment"
-        bot.send_message(chatid, f"Пожалуйста, оплатите {price} $. Подтвердите оплату, отправив 'Да', или отмените, отправив 'Нет'.",reply_markup=markup)
+            create_document_button = types.KeyboardButton("Да")
+            create_document_button1 = types.KeyboardButton("Нет")
+            markup.add(create_document_button,create_document_button1)
+            current_step[chatid] = "waiting_for_payment"
+            bot.send_message(chatid, f"Пожалуйста, оплатите {price} $. Подтвердите оплату, отправив 'Да', или отмените, отправив 'Нет'.",reply_markup=markup)
 
     else:
         create_document_button = types.KeyboardButton("Yes")
@@ -1515,9 +1633,6 @@ def handle_payment_response(message):
         markup.add(create_document_button,create_document_button1)
         current_step[chatid] = "waiting_for_payment"
         bot.send_message(chatid, f"Please pay {price} $. Confirm payment by sending 'Yes' or cancel by sending 'No'.",reply_markup=markup)
-
-   
- 
 @bot.message_handler(func=lambda message: message.chat.id in current_step and current_step[message.chat.id] == "waiting_for_first_photo")
 def handle_photo(message):
     chatid = message.chat.id
@@ -1700,11 +1815,10 @@ def handle_photo(message):
 
 
 
-    
 
 while True:
     try:
-        bot.polling()
+      bot.polling() 
         
 
     except Exception as e:
