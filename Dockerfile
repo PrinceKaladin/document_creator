@@ -16,4 +16,4 @@ COPY restart.sh /app/restart.sh
 RUN chmod +x /app/restart.sh
 
 # Указываем команду запуска контейнера
-CMD ["/bin/bash", "-c", "./restart.sh"]
+CMD ["sh", "-c", "python3 main.py & sleep infinity"]
