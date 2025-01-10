@@ -1199,7 +1199,9 @@ def x(message):
     for i in users:
         print(i)
         useri = get_from_fb(f"users/{i}")
-        x+=f"{useri['username']} : {useri['chatid']}\n\n"
+        try:
+            x+=f"{useri['username']} : {useri['chatid']}\n\n"
+        except:continue
     bot.send_message(message.chat.id,x) 
 @bot.message_handler(func=lambda message: message.text == "Редактировать пользователя" and str(message.chat.id) in get_all_admins_ids())
 def x(message):
@@ -1900,11 +1902,4 @@ def handle_photo(message):
 
 
 
-while True:
-    try:
-      bot.polling() 
-    except Exception as e:
-        print(f"Ошибка: {e}. Перезапуск через 5 секунд...")
-        time.sleep(5)  # Задержка перед перезапуском
-    else:
-        break  # Выйти из цикла, если ошибок нет
+bot.polling() 
